@@ -1,10 +1,30 @@
-package kakao_login_lambda
+//package kakao_login_lambda
+//
+//import (
+//	"github.com/aws/aws-lambda-go/lambda"
+//	"github.com/cho8833/kakao_login_lambda/controller"
+//)
+//
+//func main() {
+//	lambda.Start(controller.GetUser)
+//}
+
+package main
 
 import (
+	"context"
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/cho8833/kakao_login_lambda/controller"
 )
 
+func handler(ctx context.Context, event events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	response := events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       "\"Hello from Lambda!\"",
+	}
+	return response, nil
+}
+
 func main() {
-	lambda.Start(controller.GetUser)
+	lambda.Start(handler)
 }
