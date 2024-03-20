@@ -1,4 +1,4 @@
-module git-codecommit.ap-northeast-2.amazonaws.com/v1/repos/cc_calendar
+module github.com/cho8833/CC-Calendar
 
 go 1.22.1
 

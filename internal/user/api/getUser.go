@@ -3,8 +3,8 @@ package api
 import (
 	"context"
 	"fmt"
-	"git-codecommit.ap-northeast-2.amazonaws.com/v1/repos/cc_calendar/internal/user/service"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/cho8833/CC-Calendar/internal/user/service"
 	"strconv"
 )
 

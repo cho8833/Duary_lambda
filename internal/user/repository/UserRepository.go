@@ -3,12 +3,12 @@ package repository
 import (
 	"context"
 	"errors"
-	"git-codecommit.ap-northeast-2.amazonaws.com/v1/repos/cc_calendar/internal/user/model"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
+	"github.com/cho8833/CC-Calendar/internal/user/model"
 	"log"
 )
 

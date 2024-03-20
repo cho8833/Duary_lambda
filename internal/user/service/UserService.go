@@ -1,8 +1,8 @@
 package service
 
 import (
-	"git-codecommit.ap-northeast-2.amazonaws.com/v1/repos/cc_calendar/internal/user/model"
-	"git-codecommit.ap-northeast-2.amazonaws.com/v1/repos/cc_calendar/internal/user/repository"
+	"github.com/cho8833/CC-Calendar/internal/user/model"
+	"github.com/cho8833/CC-Calendar/internal/user/repository"
 )
 
 type UserService struct {
