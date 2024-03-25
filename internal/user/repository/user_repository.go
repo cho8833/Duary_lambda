@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
@@ -13,24 +12,16 @@ import (
 )
 
 type UserRepository struct {
+	client *dynamodb.Client
 }
 
-func getClient() (*dynamodb.Client, error) {
-	cfg, err := config.LoadDefaultConfig(context.TODO(),
-		config.WithSharedConfigProfile("default"))
-	if err != nil {
-		return nil, err
-	}
-	return dynamodb.NewFromConfig(cfg), nil
+func NewUserRepository(client *dynamodb.Client) *UserRepository {
+	return &UserRepository{client: client}
 }
 
-func TableExists(tableName string) (bool, error) {
+func (repository UserRepository) TableExists(tableName string) (bool, error) {
 	exists := true
-	client, err := getClient()
-	if err != nil {
-		return false, err
-	}
-	_, err = client.DescribeTable(
+	_, err := repository.client.DescribeTable(
 		context.TODO(), &dynamodb.DescribeTableInput{TableName: aws.String(tableName)},
 	)
 	if err != nil {
@@ -47,13 +38,9 @@ func TableExists(tableName string) (bool, error) {
 }
 
 func (repository UserRepository) GetUser(userId int64) (*model.User, error) {
-	client, err := getClient()
-	if err != nil {
-		return nil, err
-	}
 
 	user := model.User{Id: userId}
-	response, err := client.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	response, err := repository.client.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		Key: user.GetKey(), TableName: aws.String("User"),
 	})
 	if err != nil {

@@ -9,8 +9,8 @@ type UserService struct {
 	userRepository *repository.UserRepository
 }
 
-func NewUserService() *UserService {
-	return &UserService{userRepository: &repository.UserRepository{}}
+func NewUserService(userRepository *repository.UserRepository) *UserService {
+	return &UserService{userRepository: userRepository}
 }
 
 func (svc UserService) GetUser(userId int64) (*model.User, error) {
