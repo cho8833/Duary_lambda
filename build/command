@@ -1,0 +1,1 @@
+ GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -tags lambda.norpc -o build/package/get_user cmd/user/get_user.go
