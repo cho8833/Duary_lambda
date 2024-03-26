@@ -18,6 +18,6 @@ func (user User) GetKey() map[string]types.AttributeValue {
 		panic(err)
 	}
 	return map[string]types.AttributeValue{
-		"id": id,
+		"userId": id,
 	}
 }

@@ -2,9 +2,9 @@ package config
 
 import (
 	"context"
-	"fmt"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"log"
 	"sync"
 )
 
@@ -16,7 +16,7 @@ var lock = &sync.Mutex{}
 
 var contextSingleton *DynamoDBOption
 
-func GetDynamoDBOption() *DynamoDBOption {
+func GetDynamoDBOption() (*DynamoDBOption, error) {
 	if contextSingleton == nil {
 		lock.Lock()
 		defer lock.Unlock()
@@ -24,12 +24,12 @@ func GetDynamoDBOption() *DynamoDBOption {
 	if contextSingleton == nil {
 		client, err := loadDynamoDBClient()
 		if err != nil {
-			fmt.Printf("failed to create DynamoDBOption : %s\n", err)
-			return nil
+			log.Printf("failed to create DynamoDBOption : %s\n", err)
+			return nil, err
 		}
 		contextSingleton = &DynamoDBOption{Client: client}
 	}
-	return contextSingleton
+	return contextSingleton, nil
 }
 
 func loadDynamoDBClient() (*dynamodb.Client, error) {
