@@ -5,7 +5,7 @@ Resources:
       Timeout: 300
       MemorySize: 128
       Handler: main
-      CodeUri: /Users/johyeonbin/Desktop/cc_calendar
+      CodeUri: /Users/johyeonbin/Desktop/duary_lambda
       Runtime: go1.x
       Architectures:
         - x86_64
