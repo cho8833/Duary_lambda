@@ -1,8 +1,8 @@
 package model
 
 type OAuthToken struct {
-	accessToken *string
-	provider    *string
-	memberId    *int64
-	socialId    *int64
+	AccessToken *string `dynamodbav:"accessToken"`
+	Provider    *string `dynamodbav:"provider"`
+	MemberId    *int64  `dynamodbav:"memberId"`
+	SocialId    *int64  `dynamodbav:"socialId"`
 }
