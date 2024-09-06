@@ -2,39 +2,41 @@ package main
 
 import (
 	"context"
-	"github.com/aws/aws-lambda-go/events"
+	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/cho8833/Duary/internal/auth/dto"
 	oidcRepository "github.com/cho8833/Duary/internal/auth/repository"
 	repository "github.com/cho8833/Duary/internal/auth/repository/impl"
 	authService "github.com/cho8833/Duary/internal/auth/service/impl"
 	"github.com/cho8833/Duary/internal/util"
 )
 
-func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func HandleRequest(ctx context.Context, request *dto.GetPublicKeyReq) (*util.ServerResponse, error) {
+	// check Req
+	if request.Url == "" || request.Provider == "" || request.Kid == "" {
+		return util.ResponseFromError(fmt.Errorf("Bad Request"), 400), nil
+	}
 
 	// load client
 	cacheClient := util.GetCacheClient()
 	httpClient, err := cacheClient.GetHttpClient()
 	if err != nil {
-		return util.CreateLambdaResponse(util.ResponseFromError(err, 500)), nil
+		return util.ResponseFromError(err, 500), nil
 	}
 	dynamodbClient, err := cacheClient.GetDynamoDBClient()
 	if err != nil {
-		return util.CreateLambdaResponse(util.ResponseFromError(err, 500)), nil
+		return util.ResponseFromError(err, 500), nil
 	}
 
 	// init service
 	var repo oidcRepository.OIDCPublicKeyRepository = repository.NewOIDCPublicKeyRepository(httpClient, dynamodbClient)
 	svc := authService.NewOIDCService(&repo)
 
-	url := request.QueryStringParameters["url"]
-	provider := request.QueryStringParameters["provider"]
-	kid := request.QueryStringParameters["kid"]
-	res, err := svc.GetPublicKey(url, provider, kid)
+	res, err := svc.GetPublicKey(request.Url, request.Provider, request.Kid)
 	if err != nil {
-		return util.CreateLambdaResponse(util.ResponseFromError(err, 400)), nil
+		return util.ResponseFromError(err, 400), nil
 	}
-	return util.CreateLambdaResponse(util.ResponseWithData(res)), nil
+	return util.ResponseWithData(res), nil
 }
 
 func main() {
