@@ -1,14 +1,19 @@
 package util
 
-type ServerResponse[T any] struct {
-	message *string
-	status  int64
-	data    *T
-	error   bool
+import (
+	"encoding/json"
+	"github.com/aws/aws-lambda-go/events"
+)
+
+type ServerResponse struct {
+	Message *string `json:"message"`
+	Status  int     `json:"status"`
+	Data    any     `json:"data"`
+	Error   bool    `json:"error"`
 }
 
-func ErrorResponse(message string, statusCode int64) ServerResponse[any] {
-	return ServerResponse[any]{
+func ErrorResponse(message string, statusCode int) *ServerResponse {
+	return &ServerResponse{
 		&message,
 		statusCode,
 		nil,
@@ -16,9 +21,9 @@ func ErrorResponse(message string, statusCode int64) ServerResponse[any] {
 	}
 }
 
-func ResponseFromError(error error, statusCode int64) ServerResponse[any] {
+func ResponseFromError(error error, statusCode int) *ServerResponse {
 	errorMessage := error.Error()
-	return ServerResponse[any]{
+	return &ServerResponse{
 		&errorMessage,
 		statusCode,
 		nil,
@@ -26,9 +31,9 @@ func ResponseFromError(error error, statusCode int64) ServerResponse[any] {
 	}
 }
 
-func ResponseWithData[T any](data T) ServerResponse[T] {
+func ResponseWithData(data any) *ServerResponse {
 	okString := "OK"
-	return ServerResponse[T]{
+	return &ServerResponse{
 		&okString,
 		200,
 		&data,
@@ -36,13 +41,21 @@ func ResponseWithData[T any](data T) ServerResponse[T] {
 	}
 }
 
-func SUCCESS() ServerResponse[any] {
+func SUCCESS() *ServerResponse {
 	okString := "OK"
 
-	return ServerResponse[any]{
+	return &ServerResponse{
 		&okString,
 		200,
 		nil,
 		false,
+	}
+}
+
+func CreateLambdaResponse(res *ServerResponse) events.APIGatewayProxyResponse {
+	b, _ := json.Marshal(res)
+	return events.APIGatewayProxyResponse{
+		StatusCode: 200,
+		Body:       string(b),
 	}
 }
