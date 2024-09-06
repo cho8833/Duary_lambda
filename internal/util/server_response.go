@@ -9,7 +9,6 @@ type ServerResponse struct {
 	Message *string `json:"message"`
 	Status  int     `json:"status"`
 	Data    any     `json:"data"`
-	Error   bool    `json:"error"`
 }
 
 func ErrorResponse(message string, statusCode int) *ServerResponse {
@@ -17,7 +16,6 @@ func ErrorResponse(message string, statusCode int) *ServerResponse {
 		&message,
 		statusCode,
 		nil,
-		true,
 	}
 }
 
@@ -27,7 +25,6 @@ func ResponseFromError(error error, statusCode int) *ServerResponse {
 		&errorMessage,
 		statusCode,
 		nil,
-		true,
 	}
 }
 
@@ -37,7 +34,6 @@ func ResponseWithData(data any) *ServerResponse {
 		&okString,
 		200,
 		&data,
-		false,
 	}
 }
 
@@ -48,7 +44,6 @@ func SUCCESS() *ServerResponse {
 		&okString,
 		200,
 		nil,
-		false,
 	}
 }
 
