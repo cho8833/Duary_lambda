@@ -9,6 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cho8833/Duary/internal/auth/dto"
+	"log"
 	"net/http"
 )
 
@@ -59,14 +60,16 @@ func (repository *OIDCPublicKeyRepositoryImpl) GetPublicJWK(url string) (*dto.Ce
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("idtoken: unable to retrieve cert, got status code %d", res.StatusCode)
+		errorMsg := fmt.Sprintf("failed to retrieve public key: %s", err.Error())
+		log.Printf(errorMsg)
+		return nil, fmt.Errorf(errorMsg)
 	}
 
 	certRes := &dto.CertResponse{}
 	if err := json.NewDecoder(res.Body).Decode(certRes); err != nil {
 		return nil, err
 	}
-
+	log.Printf("got public jwk : %+v\n", certRes)
 	return certRes, nil
 }
 
@@ -91,9 +94,12 @@ func (repository *OIDCPublicKeyRepositoryImpl) SaveJWK(provider string, jwks []d
 			},
 		},
 	})
+
 	if err != nil {
+		log.Printf("failed to save jwk : %s", err.Error())
 		return err
 	}
 
+	log.Printf("saved jwk : %+v\n", jwks)
 	return nil
 }
