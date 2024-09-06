@@ -34,7 +34,7 @@ func HandleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 	if err != nil {
 		return util.CreateLambdaResponse(util.ResponseFromError(err, 400)), nil
 	}
-	return util.CreateLambdaResponse(res), nil
+	return util.CreateLambdaResponse(util.ResponseWithData(res)), nil
 }
 
 func main() {

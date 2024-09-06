@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/cho8833/Duary/internal/auth/dto"
 	"github.com/cho8833/Duary/internal/auth/repository"
-	"github.com/cho8833/Duary/internal/util"
 	"log"
 )
 
@@ -16,7 +15,7 @@ func NewOIDCService(repository *repository.OIDCPublicKeyRepository) *OIDCService
 	return &OIDCServiceImpl{repository: *repository}
 }
 
-func (svc *OIDCServiceImpl) GetPublicKey(url string, provider string, kid string) (*util.ServerResponse, error) {
+func (svc *OIDCServiceImpl) GetPublicKey(url string, provider string, kid string) (*dto.JWK, error) {
 	// retrieve public jwk from DB
 	certRes, err := svc.repository.FindPublicKeyInDB(provider)
 	if err != nil {
@@ -42,7 +41,7 @@ func (svc *OIDCServiceImpl) GetPublicKey(url string, provider string, kid string
 		return nil, fmt.Errorf("no matching key with kid: %s, provider: %s, url: %s", kid, provider, url)
 	}
 
-	return util.ResponseWithData(jwk), nil
+	return jwk, nil
 }
 
 func findMatchingKey(kid string, jwks []dto.JWK) *dto.JWK {
