@@ -103,7 +103,7 @@ func (validator *JWTValidatorImpl) VerifyRSA256(idToken string, value *Validatin
 		}
 
 		// check Nonce, pair with frontend
-		nonce := claims["Nonce"].(string)
+		nonce := claims["nonce"].(string)
 		if value.Nonce != "" {
 			if nonce != value.Nonce {
 				return nil, fmt.Errorf("Nonce does not match")
@@ -152,7 +152,7 @@ func getPublicKey(kid string, url string, provider string) (*dto.JWK, error) {
 	if invokeOutput.StatusCode != 200 {
 		return nil, fmt.Errorf("%+v", invokeOutput.Payload)
 	}
-	jwkResponse := &util.ServerResponse{}
+	jwkResponse := &util.ServerResponse[dto.JWK]{}
 	err = json.Unmarshal(invokeOutput.Payload, jwkResponse)
 	if err != nil {
 		return nil, err
@@ -160,5 +160,6 @@ func getPublicKey(kid string, url string, provider string) (*dto.JWK, error) {
 	if jwkResponse.Status != 200 {
 		return nil, fmt.Errorf(*jwkResponse.Message)
 	}
-	return jwkResponse.Data.(*dto.JWK), nil
+
+	return &jwkResponse.Data, nil
 }

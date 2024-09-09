@@ -1,12 +1,14 @@
 package impl
 
 import (
+	"errors"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cho8833/duary_lambda/internal/auth/dto"
 	"github.com/cho8833/duary_lambda/internal/auth/util"
 	"github.com/cho8833/duary_lambda/internal/member/model"
 	memberRepository "github.com/cho8833/duary_lambda/internal/member/repository"
-	errors "github.com/cho8833/duary_lambda/internal/util"
+	appError "github.com/cho8833/duary_lambda/internal/util"
 	"log"
 	"os"
 )
@@ -21,7 +23,7 @@ func NewKakaoAuthService(jwtValidator util.JWTValidator,
 	return &KakaoAuthServiceImpl{jwtValidator: jwtValidator, memberRepository: memberRepository}
 }
 
-func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken dto.KakaoOAuthToken) (*dto.SignInRes, error) {
+func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.SignInRes, appError.ApplicationError) {
 
 	aud := os.Getenv("aud")
 	nonce := os.Getenv("nonce")
@@ -36,14 +38,16 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken dto.KakaoOAuthToken) (*dto.Si
 	payload, err := svc.jwtValidator.VerifyRSA256(*kakaoToken.IdToken, validateValue)
 	if err != nil {
 		log.Printf(err.Error())
-		return nil, errors.NewBadRequestError(fmt.Errorf("인증정보가 잘못되었습니다"))
+		return nil, appError.NewBadRequestError(fmt.Errorf("인증정보가 잘못되었습니다"))
 	}
 
 	// 카카오 회원 ID 와 카카오 ServiceProvider 로 Member 검색
+	// Member 가 없을 경우 ResourceNotFoundException 발생, 해당 Exception 은 오류가 아님
 	member, err := svc.memberRepository.FindBySocialIdAndProvider(payload.SocialId, "kakao")
-	if err != nil {
+	if temp := new(types.ResourceNotFoundException); !errors.As(err, &temp) && err != nil {
 		log.Printf(err.Error())
-		return nil, errors.NewDBError(fmt.Errorf("정보를 가져오는데에 실패했습니다"))
+		return nil, appError.NewDBError(fmt.Errorf("정보를 가져오는데에 실패했습니다"))
+
 	}
 
 	// member 가 존재하는 경우 이미 회원가입된 Member return
@@ -67,7 +71,7 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken dto.KakaoOAuthToken) (*dto.Si
 		}
 		err := svc.memberRepository.SaveMember(newMember)
 		if err != nil {
-			return nil, errors.NewDBError(fmt.Errorf("회원 정보를 저장하는데에 실패했습니다"))
+			return nil, appError.NewDBError(fmt.Errorf("회원 정보를 저장하는데에 실패했습니다"))
 		}
 		result := &dto.SignInRes{
 			Member:     newMember,

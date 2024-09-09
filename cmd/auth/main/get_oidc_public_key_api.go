@@ -11,7 +11,7 @@ import (
 	"github.com/cho8833/duary_lambda/internal/util"
 )
 
-func HandleRequest(ctx context.Context, request *dto.GetPublicKeyReq) (*util.ServerResponse, error) {
+func HandleRequest(ctx context.Context, request *dto.GetPublicKeyReq) (*util.ServerResponse[any], error) {
 	// check Req
 	if request.Url == "" || request.Provider == "" || request.Kid == "" {
 		return util.ResponseFromError(fmt.Errorf("Bad Request"), 400), nil
