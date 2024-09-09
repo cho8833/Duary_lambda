@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/cho8833/Duary/internal/util"
+	"github.com/cho8833/duary_lambda/internal/util"
 )
 
 type OIDCService interface {

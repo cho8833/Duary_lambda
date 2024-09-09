@@ -2,8 +2,8 @@ package impl
 
 import (
 	"fmt"
-	"github.com/cho8833/Duary/internal/auth/dto"
-	"github.com/cho8833/Duary/internal/auth/repository"
+	"github.com/cho8833/duary_lambda/internal/auth/dto"
+	"github.com/cho8833/duary_lambda/internal/auth/repository"
 	"log"
 )
 

@@ -10,4 +10,5 @@ type Member struct {
 	AccessToken *string    `dynamodbav:"accessToken"`
 	Provider    string     `dynamodbav:"provider"`
 	SocialId    int64      `json:"socialId" dynamodbav:"socialId"`
+	Email       *string    `json:"email" dynamodbav:"email"`
 }

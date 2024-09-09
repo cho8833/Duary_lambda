@@ -9,10 +9,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/lambda"
 	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
-	"github.com/cho8833/Duary/internal/auth/dto"
-	"github.com/cho8833/Duary/internal/util"
+	"github.com/cho8833/duary_lambda/internal/auth/dto"
+	"github.com/cho8833/duary_lambda/internal/util"
 	"github.com/golang-jwt/jwt/v5"
 	"math/big"
+	"strconv"
 	"time"
 )
 
@@ -24,7 +25,21 @@ type ValidatingValue struct {
 	Provider string
 }
 
-func VerifyRSA256(idToken string, value *ValidatingValue) error {
+type DecodedPayload struct {
+	SocialId int64
+	Exp      time.Time
+	Email    *string
+	NickName *string
+}
+
+type JWTValidator interface {
+	VerifyRSA256(idToken string, value *ValidatingValue) (*DecodedPayload, error)
+}
+
+type JWTValidatorImpl struct {
+}
+
+func (validator *JWTValidatorImpl) VerifyRSA256(idToken string, value *ValidatingValue) (*DecodedPayload, error) {
 	claims := jwt.MapClaims{}
 
 	token, err := jwt.ParseWithClaims(idToken, claims, func(token *jwt.Token) (interface{}, error) {
@@ -50,52 +65,65 @@ func VerifyRSA256(idToken string, value *ValidatingValue) error {
 		return pk, nil
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	var expireTime time.Time
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 
 		// check issuer
 		iss, err := claims.GetIssuer()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if value.Iss != "" {
 			if iss != value.Iss {
-				return fmt.Errorf("issuer does not match")
+				return nil, fmt.Errorf("issuer does not match")
 			}
 		}
 
 		// check audience
 		aud, err := claims.GetAudience()
 		if err != nil {
-			return err
+			return nil, err
 		}
 		if value.Aud != "" {
 			if aud[0] != value.Aud {
-				return fmt.Errorf("audience does not match")
+				return nil, fmt.Errorf("audience does not match")
 			}
 		}
 
 		// check expirationTime, must be before now
-		exp, err := claims.GetExpirationTime()
+		expireTime, err := claims.GetExpirationTime()
 		if err != nil {
-			return err
+			return nil, err
 		}
-		if exp.Before(time.Now()) {
-			return fmt.Errorf("expire time is not valid")
+		if expireTime.Before(time.Now()) {
+			return nil, fmt.Errorf("expire time is not valid")
 		}
 
 		// check Nonce, pair with frontend
 		nonce := claims["Nonce"].(string)
 		if value.Nonce != "" {
 			if nonce != value.Nonce {
-				return fmt.Errorf("Nonce does not match")
+				return nil, fmt.Errorf("Nonce does not match")
 			}
 		}
 	}
 
-	return nil
+	socialId, err := strconv.ParseInt(claims["sub"].(string), 10, 64)
+	if err != nil {
+		return nil, err
+	}
+	email := claims["email"].(string)
+	nickName := claims["nickname"].(string)
+	result := &DecodedPayload{
+		SocialId: socialId,
+		Exp:      expireTime,
+		Email:    &email,
+		NickName: &nickName,
+	}
+	return result, nil
 }
 
 func decode(s string) ([]byte, error) {

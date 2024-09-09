@@ -3,12 +3,12 @@ package dto
 import "time"
 
 type KakaoOAuthToken struct {
-	accessToken           *string
+	AccessToken           *string `json:"accessToken"`
 	expiresAt             *time.Time
 	refreshToken          *string
 	refreshTokenExpiresAt *time.Time
 	scopes                *[]string
-	IdToken               *string
+	IdToken               *string `json:"idToken"`
 }
 
 type CertResponse struct {

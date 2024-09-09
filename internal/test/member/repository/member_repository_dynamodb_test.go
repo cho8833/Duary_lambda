@@ -2,9 +2,9 @@ package repository
 
 import (
 	"fmt"
-	"github.com/cho8833/Duary/internal/member/model"
-	"github.com/cho8833/Duary/internal/member/repository/impl"
-	"github.com/cho8833/Duary/internal/test/util"
+	"github.com/cho8833/duary_lambda/internal/member/model"
+	"github.com/cho8833/duary_lambda/internal/member/repository/impl"
+	"github.com/cho8833/duary_lambda/internal/test/util"
 	"testing"
 	"time"
 )
