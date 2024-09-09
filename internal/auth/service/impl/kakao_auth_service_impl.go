@@ -47,11 +47,15 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 	if temp := new(types.ResourceNotFoundException); !errors.As(err, &temp) && err != nil {
 		log.Printf(err.Error())
 		return nil, appError.NewDBError(fmt.Errorf("정보를 가져오는데에 실패했습니다"))
-
 	}
 
-	// member 가 존재하는 경우 이미 회원가입된 Member return
+	// member 가 존재하는 경우 DB 필드를 업데이트하고 이미 회원가입된 Member return
 	if member != nil {
+		member.AccessToken = kakaoToken.AccessToken
+		err := svc.memberRepository.SaveMember(member)
+		if err != nil {
+			return nil, appError.NewDBError(fmt.Errorf("회원 정보를 저장하는데에 실패했습니다"))
+		}
 		result := &dto.SignInRes{
 			Member:     member,
 			IsRegister: false,
