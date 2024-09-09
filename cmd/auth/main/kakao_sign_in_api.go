@@ -7,8 +7,8 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/cho8833/duary_lambda/internal/auth/dto"
+	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
 	impl2 "github.com/cho8833/duary_lambda/internal/auth/service/impl"
-	util2 "github.com/cho8833/duary_lambda/internal/auth/util"
 	"github.com/cho8833/duary_lambda/internal/member/repository/impl"
 	"github.com/cho8833/duary_lambda/internal/util"
 	"log"
@@ -23,7 +23,7 @@ func handleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 		return util.LambdaErrorResponse(fmt.Errorf("알 수 없는 서버 오류"), 500), nil
 	}
 	memberRepository := impl.NewMemberRepository(dynamoDBClient)
-	svc := impl2.NewKakaoAuthService(&util2.JWTValidatorImpl{}, memberRepository)
+	svc := impl2.NewKakaoAuthService(&jwt_util.JWTValidatorImpl{}, &jwt_util.JWTUtilImpl{}, memberRepository)
 
 	// parse request
 	kakaoToken := &dto.KakaoOAuthToken{}

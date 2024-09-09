@@ -1,6 +1,9 @@
 package dto
 
-import "time"
+import (
+	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
+	"time"
+)
 
 type KakaoOAuthToken struct {
 	AccessToken           *string `json:"accessToken"`
@@ -12,17 +15,5 @@ type KakaoOAuthToken struct {
 }
 
 type CertResponse struct {
-	Keys []JWK `json:"keys"`
-}
-
-type JWK struct {
-	Alg string `json:"alg"`
-	Crv string `json:"crv"`
-	Kid string `json:"kid"`
-	Kty string `json:"kty"`
-	Use string `json:"use"`
-	E   string `json:"e"`
-	N   string `json:"n"`
-	X   string `json:"x"`
-	Y   string `json:"y"`
+	Keys []jwt_util.JWK `json:"keys"`
 }

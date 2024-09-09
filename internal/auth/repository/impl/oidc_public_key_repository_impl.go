@@ -9,13 +9,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cho8833/duary_lambda/internal/auth/dto"
+	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
 	"log"
 	"net/http"
 )
 
 type OIDCPublicKey struct {
-	provider *string   `json:"provider"`
-	Keys     []dto.JWK `json:"keys"`
+	provider *string        `json:"provider"`
+	Keys     []jwt_util.JWK `json:"keys"`
 }
 
 type OIDCPublicKeyRepositoryImpl struct {
@@ -73,7 +74,7 @@ func (repository *OIDCPublicKeyRepositoryImpl) GetPublicJWK(url string) (*dto.Ce
 	return certRes, nil
 }
 
-func (repository *OIDCPublicKeyRepositoryImpl) SaveJWK(provider string, jwks []dto.JWK) error {
+func (repository *OIDCPublicKeyRepositoryImpl) SaveJWK(provider string, jwks []jwt_util.JWK) error {
 
 	var keys []types.AttributeValue
 
