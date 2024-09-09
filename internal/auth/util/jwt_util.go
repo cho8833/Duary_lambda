@@ -1,41 +1,45 @@
 package util
 
 import (
+	"context"
 	"crypto/rsa"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/lambda"
+	"github.com/aws/aws-sdk-go-v2/service/lambda/types"
 	"github.com/cho8833/Duary/internal/auth/dto"
+	"github.com/cho8833/Duary/internal/util"
 	"github.com/golang-jwt/jwt/v5"
 	"math/big"
 	"time"
 )
 
 type ValidatingValue struct {
-	iss   *string
-	aud   *string
-	nonce *string
-	cert  *dto.CertResponse
+	Iss      string
+	Aud      string
+	Nonce    string
+	Url      string
+	Provider string
 }
 
-func NewValidatingValue(iss *string, aud *string, nonce *string, cert *dto.CertResponse) *ValidatingValue {
-	return &ValidatingValue{iss: iss, aud: aud, nonce: nonce, cert: cert}
-}
-
-func VerifyRS256(idToken string, value *ValidatingValue) error {
+func VerifyRSA256(idToken string, value *ValidatingValue) error {
 	claims := jwt.MapClaims{}
 
 	token, err := jwt.ParseWithClaims(idToken, claims, func(token *jwt.Token) (interface{}, error) {
 		// verify with public key
 		kid := token.Header["kid"].(string)
-		key, err := findMatchingKey(value.cert, kid)
+		jwk, err := getPublicKey(kid, value.Url, value.Provider)
 		if err != nil {
 			return nil, err
 		}
-		n, err := decode(key.N)
+
+		n, err := decode(jwk.N)
 		if err != nil {
 			return nil, err
 		}
-		e, err := decode(key.E)
+		e, err := decode(jwk.E)
 		if err != nil {
 			return nil, err
 		}
@@ -56,8 +60,8 @@ func VerifyRS256(idToken string, value *ValidatingValue) error {
 		if err != nil {
 			return err
 		}
-		if value.iss != nil {
-			if iss != *value.iss {
+		if value.Iss != "" {
+			if iss != value.Iss {
 				return fmt.Errorf("issuer does not match")
 			}
 		}
@@ -67,8 +71,8 @@ func VerifyRS256(idToken string, value *ValidatingValue) error {
 		if err != nil {
 			return err
 		}
-		if value.aud != nil {
-			if aud[0] != *value.aud {
+		if value.Aud != "" {
+			if aud[0] != value.Aud {
 				return fmt.Errorf("audience does not match")
 			}
 		}
@@ -82,11 +86,11 @@ func VerifyRS256(idToken string, value *ValidatingValue) error {
 			return fmt.Errorf("expire time is not valid")
 		}
 
-		// check nonce, pair with frontend
-		nonce := claims["nonce"].(string)
-		if value.nonce != nil {
-			if nonce != *value.nonce {
-				return fmt.Errorf("nonce does not match")
+		// check Nonce, pair with frontend
+		nonce := claims["Nonce"].(string)
+		if value.Nonce != "" {
+			if nonce != value.Nonce {
+				return fmt.Errorf("Nonce does not match")
 			}
 		}
 	}
@@ -94,18 +98,39 @@ func VerifyRS256(idToken string, value *ValidatingValue) error {
 	return nil
 }
 
-func findMatchingKey(response *dto.CertResponse, kid string) (*dto.JWK, error) {
-	if response == nil {
-		return nil, fmt.Errorf("response is null")
-	}
-	for _, key := range response.Keys {
-		if key.Kid == kid {
-			return &key, nil
-		}
-	}
-	return nil, fmt.Errorf("idToken: could not find matching cert keyId for the token")
-}
-
 func decode(s string) ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(s)
+}
+
+func getPublicKey(kid string, url string, provider string) (*dto.JWK, error) {
+	payload, err := json.Marshal(&dto.GetPublicKeyReq{
+		Url:      url,
+		Provider: provider,
+		Kid:      kid,
+	})
+	if err != nil {
+		return nil, err
+	}
+	client, err := util.GetCacheClient().GetLambdaClient()
+	invokeInput := lambda.InvokeInput{
+		FunctionName: aws.String("get_oidc_public_key"),
+		LogType:      types.LogTypeTail,
+		Payload:      payload,
+	}
+	invokeOutput, err := client.Invoke(context.TODO(), &invokeInput)
+	if err != nil {
+		return nil, err
+	}
+	if invokeOutput.StatusCode != 200 {
+		return nil, fmt.Errorf("%+v", invokeOutput.Payload)
+	}
+	jwkResponse := &util.ServerResponse{}
+	err = json.Unmarshal(invokeOutput.Payload, jwkResponse)
+	if err != nil {
+		return nil, err
+	}
+	if jwkResponse.Status != 200 {
+		return nil, fmt.Errorf(*jwkResponse.Message)
+	}
+	return jwkResponse.Data.(*dto.JWK), nil
 }
