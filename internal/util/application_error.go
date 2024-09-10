@@ -6,11 +6,10 @@ type ApplicationError interface {
 }
 
 type BadRequestError struct {
-	error
 }
 
-func NewBadRequestError(err error) ApplicationError {
-	return BadRequestError{err}
+func (err BadRequestError) Error() string {
+	return "잘못된 요청입니다"
 }
 func (err BadRequestError) StatusCode() int {
 	return 400

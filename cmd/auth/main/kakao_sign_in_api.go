@@ -14,7 +14,7 @@ import (
 	"log"
 )
 
-func handleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+func kakaoSignInAPI(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// init
 	cacheClient := util.GetCacheClient()
 	dynamoDBClient, err := cacheClient.GetDynamoDBClient()
@@ -35,12 +35,12 @@ func handleRequest(ctx context.Context, request events.APIGatewayProxyRequest) (
 
 	// process
 	result, svcError := svc.SignIn(kakaoToken)
-	if err != nil {
+	if svcError != nil {
 		return util.LambdaAppErrorResponse(svcError), nil
 	}
 	return util.LambdaResponseWithData(result), nil
 }
 
 func main() {
-	lambda.Start(handleRequest)
+	lambda.Start(kakaoSignInAPI)
 }

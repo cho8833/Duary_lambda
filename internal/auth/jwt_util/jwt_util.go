@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
-	"os"
 	"time"
 )
 
@@ -16,23 +15,22 @@ type ApplicationJWT struct {
 }
 
 type JWTUtil interface {
-	NewToken(id string, name string) *ApplicationJWT
-	ValidateApplicationJWT(tokenString string) (*string, error)
+	NewToken(id string, key string) *ApplicationJWT
+	ValidateApplicationJWT(tokenString string, key string) (*string, error)
 }
 
 type JWTUtilImpl struct {
 }
 
-func (util *JWTUtilImpl) NewToken(id string, name string) *ApplicationJWT {
-	secretKey := []byte(os.Getenv("secretKey"))
+func (util *JWTUtilImpl) NewToken(id string, key string) *ApplicationJWT {
+	secretKey := []byte(key)
 	// accessToken: 1일 후 expire
 	expireTime := time.Now().AddDate(0, 0, 1).Unix()
 	// refreshToken: 7일 후 expire
 	refreshTokenExpireAt := time.Now().AddDate(0, 0, 7).Unix()
 	accessToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"sub":  id,
-		"exp":  expireTime,
-		"name": name,
+		"sub": id,
+		"exp": expireTime,
 	})
 	refreshToken := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub": id,
@@ -51,13 +49,14 @@ func (util *JWTUtilImpl) NewToken(id string, name string) *ApplicationJWT {
 	return result
 }
 
-func (util *JWTUtilImpl) ValidateApplicationJWT(tokenString string) (*string, error) {
-	secretKey := []byte(os.Getenv("secretKey"))
+func (util *JWTUtilImpl) ValidateApplicationJWT(tokenString string, key string) (*string, error) {
+	secretKey := []byte(key)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 	if err != nil {
+		log.Printf("%s\ntoken:%s", err.Error(), tokenString)
 		return nil, err
 	}
 
@@ -68,6 +67,7 @@ func (util *JWTUtilImpl) ValidateApplicationJWT(tokenString string) (*string, er
 
 	id, err := token.Claims.GetSubject()
 	if err != nil {
+		log.Printf(err.Error())
 		return nil, err
 	}
 

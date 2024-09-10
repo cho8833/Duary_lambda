@@ -4,14 +4,14 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/cho8833/duary_lambda/internal/auth/dto"
+	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
 	oidcRepository "github.com/cho8833/duary_lambda/internal/auth/repository"
 	repository "github.com/cho8833/duary_lambda/internal/auth/repository/impl"
 	authService "github.com/cho8833/duary_lambda/internal/auth/service/impl"
 	"github.com/cho8833/duary_lambda/internal/util"
 )
 
-func HandleRequest(ctx context.Context, request *dto.GetPublicKeyReq) (*util.ServerResponse[any], error) {
+func getOIDCPublicKeyAPI(ctx context.Context, request *jwt_util.GetPublicKeyReq) (*util.ServerResponse[any], error) {
 	// check Req
 	if request.Url == "" || request.Provider == "" || request.Kid == "" {
 		return util.ResponseFromError(fmt.Errorf("Bad Request"), 400), nil
@@ -40,5 +40,5 @@ func HandleRequest(ctx context.Context, request *dto.GetPublicKeyReq) (*util.Ser
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	lambda.Start(getOIDCPublicKeyAPI)
 }

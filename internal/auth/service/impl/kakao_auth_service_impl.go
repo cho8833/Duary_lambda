@@ -40,7 +40,7 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 	payload, err := svc.jwtValidator.VerifyRSA256(*kakaoToken.IdToken, validateValue)
 	if err != nil {
 		log.Printf(err.Error())
-		return nil, appError.NewBadRequestError(fmt.Errorf("인증정보가 잘못되었습니다"))
+		return nil, appError.BadRequestError{}
 	}
 
 	// 카카오 회원 ID 와 카카오 ServiceProvider 로 Member 검색
@@ -53,7 +53,8 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 
 	// generate application token
 	memberId := fmt.Sprintf("%d%s", member.SocialId, member.Provider)
-	newToken := svc.jwtUtil.NewToken(memberId, *member.Name)
+	key := os.Getenv("secretKey")
+	newToken := svc.jwtUtil.NewToken(memberId, key)
 
 	// member 가 존재하는 경우 DB 필드를 업데이트하고 이미 회원가입된 Member return
 	if member != nil {

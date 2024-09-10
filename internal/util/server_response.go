@@ -47,14 +47,6 @@ func SUCCESS() *ServerResponse[any] {
 	}
 }
 
-func CreateLambdaResponse(res *ServerResponse[any]) events.APIGatewayProxyResponse {
-	b, _ := json.Marshal(res)
-	return events.APIGatewayProxyResponse{
-		StatusCode: 200,
-		Body:       string(b),
-	}
-}
-
 func LambdaResponseWithData(data any) events.APIGatewayProxyResponse {
 	res := ResponseWithData(data)
 	b, _ := json.Marshal(res)
