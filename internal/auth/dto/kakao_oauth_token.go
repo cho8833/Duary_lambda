@@ -1,7 +1,7 @@
 package dto
 
 import (
-	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
+	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
 	"time"
 )
 
@@ -15,5 +15,5 @@ type KakaoOAuthToken struct {
 }
 
 type CertResponse struct {
-	Keys []jwt_util.JWK `json:"keys"`
+	Keys []jwtutil.JWK `json:"keys"`
 }

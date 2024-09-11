@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
+	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
 	"github.com/cho8833/duary_lambda/internal/util"
 	"os"
 )
@@ -18,7 +18,7 @@ type ReissueTokenRequest struct {
 
 func reissueTokenAPI(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	key := os.Getenv("secretKey")
-	jwtUtil := jwt_util.JWTUtilImpl{}
+	jwtUtil := jwtutil.JWTUtilImpl{}
 
 	req := &ReissueTokenRequest{}
 	err := json.Unmarshal([]byte(request.Body), req)

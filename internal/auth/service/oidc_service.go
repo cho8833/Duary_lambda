@@ -2,13 +2,13 @@ package service
 
 import (
 	"fmt"
-	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
+	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
 	"github.com/cho8833/duary_lambda/internal/auth/repository"
 	"log"
 )
 
 type OIDCService interface {
-	GetPublicKey(url string, provider string, kid string) (*jwt_util.JWK, error)
+	GetPublicKey(url string, provider string, kid string) (*jwtutil.JWK, error)
 }
 
 type OIDCServiceImpl struct {
@@ -19,7 +19,7 @@ func NewOIDCService(repository *repository.OIDCPublicKeyRepository) *OIDCService
 	return &OIDCServiceImpl{repository: *repository}
 }
 
-func (svc *OIDCServiceImpl) GetPublicKey(url string, provider string, kid string) (*jwt_util.JWK, error) {
+func (svc *OIDCServiceImpl) GetPublicKey(url string, provider string, kid string) (*jwtutil.JWK, error) {
 	// retrieve public jwk from DB
 	// FindPublicKeyInDB 에 대한 Error 처리는 따로 하지 않고 logging 만 함
 	// -> 다시 받아오면 되기 때문
@@ -60,7 +60,7 @@ func (svc *OIDCServiceImpl) GetPublicKey(url string, provider string, kid string
 	return jwk, nil
 }
 
-func findMatchingKey(kid string, jwks []jwt_util.JWK) *jwt_util.JWK {
+func findMatchingKey(kid string, jwks []jwtutil.JWK) *jwtutil.JWK {
 	if jwks == nil {
 		return nil
 	}

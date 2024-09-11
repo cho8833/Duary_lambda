@@ -6,7 +6,7 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/cho8833/duary_lambda/internal/auth/dto"
-	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
+	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
 	"github.com/cho8833/duary_lambda/internal/auth/service"
 	"github.com/cho8833/duary_lambda/internal/member/repository"
 	"github.com/cho8833/duary_lambda/internal/util"
@@ -22,7 +22,7 @@ func kakaoSignInAPI(ctx context.Context, request events.APIGatewayProxyRequest) 
 		return util.LambdaAppErrorResponse(util.InternalServerError{}), nil
 	}
 	memberRepository := repository.NewMemberRepository(dynamoDBClient)
-	svc := service.NewKakaoAuthService(&jwt_util.JWTValidatorImpl{}, &jwt_util.JWTUtilImpl{}, memberRepository)
+	svc := service.NewKakaoAuthService(&jwtutil.JWTValidatorImpl{}, &jwtutil.JWTUtilImpl{}, memberRepository)
 
 	// parse request
 	kakaoToken := &dto.KakaoOAuthToken{}

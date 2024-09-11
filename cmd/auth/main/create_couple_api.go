@@ -27,6 +27,7 @@ func createCoupleAPI(_ context.Context, req events.APIGatewayProxyRequest) (even
 	err = json.Unmarshal([]byte(req.Body), &createCoupleReq)
 	if err != nil {
 		log.Printf(err.Error())
+		return util.LambdaAppErrorResponse(util.BadRequestError{}), nil
 	}
 
 	result, svcError := svc.CreateCouple(createCoupleReq)

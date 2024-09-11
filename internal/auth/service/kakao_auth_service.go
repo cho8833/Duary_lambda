@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	"github.com/cho8833/duary_lambda/internal/auth/dto"
-	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
+	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
 	"github.com/cho8833/duary_lambda/internal/member/model"
 	"github.com/cho8833/duary_lambda/internal/member/repository"
 	"github.com/cho8833/duary_lambda/internal/util"
@@ -19,12 +19,12 @@ type KakaoAuthService interface {
 
 type KakaoAuthServiceImpl struct {
 	memberRepository repository.MemberRepository
-	jwtValidator     jwt_util.JWTValidator
-	jwtUtil          jwt_util.JWTUtil
+	jwtValidator     jwtutil.JWTValidator
+	jwtUtil          jwtutil.JWTUtil
 }
 
-func NewKakaoAuthService(jwtValidator jwt_util.JWTValidator,
-	jwtUtil jwt_util.JWTUtil,
+func NewKakaoAuthService(jwtValidator jwtutil.JWTValidator,
+	jwtUtil jwtutil.JWTUtil,
 	memberRepository repository.MemberRepository) *KakaoAuthServiceImpl {
 	return &KakaoAuthServiceImpl{jwtValidator: jwtValidator, jwtUtil: jwtUtil, memberRepository: memberRepository}
 }
@@ -34,7 +34,7 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 	aud := os.Getenv("aud")
 	nonce := os.Getenv("nonce")
 	// verify id token
-	validateValue := &jwt_util.ValidatingValue{
+	validateValue := &jwtutil.ValidatingValue{
 		Url:      "https://kauth.kakao.com/.well-known/jwks.json",
 		Aud:      aud,
 		Nonce:    nonce,
