@@ -1,4 +1,4 @@
-package service
+package impl
 
 import (
 	"errors"
@@ -7,29 +7,25 @@ import (
 	"github.com/cho8833/duary_lambda/internal/auth/dto"
 	"github.com/cho8833/duary_lambda/internal/auth/jwt_util"
 	"github.com/cho8833/duary_lambda/internal/member/model"
-	"github.com/cho8833/duary_lambda/internal/member/repository"
-	"github.com/cho8833/duary_lambda/internal/util"
+	memberRepository "github.com/cho8833/duary_lambda/internal/member/repository"
+	appError "github.com/cho8833/duary_lambda/internal/util"
 	"log"
 	"os"
 )
 
-type KakaoAuthService interface {
-	SignIn(token *dto.KakaoOAuthToken) (dto.SignInRes, util.ApplicationError)
-}
-
 type KakaoAuthServiceImpl struct {
-	memberRepository repository.MemberRepository
+	memberRepository memberRepository.MemberRepository
 	jwtValidator     jwt_util.JWTValidator
 	jwtUtil          jwt_util.JWTUtil
 }
 
 func NewKakaoAuthService(jwtValidator jwt_util.JWTValidator,
 	jwtUtil jwt_util.JWTUtil,
-	memberRepository repository.MemberRepository) *KakaoAuthServiceImpl {
+	memberRepository memberRepository.MemberRepository) *KakaoAuthServiceImpl {
 	return &KakaoAuthServiceImpl{jwtValidator: jwtValidator, jwtUtil: jwtUtil, memberRepository: memberRepository}
 }
 
-func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.SignInRes, util.ApplicationError) {
+func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.SignInRes, appError.ApplicationError) {
 
 	aud := os.Getenv("aud")
 	nonce := os.Getenv("nonce")
@@ -43,17 +39,16 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 	}
 	payload, err := svc.jwtValidator.VerifyRSA256(*kakaoToken.IdToken, validateValue)
 	if err != nil {
-		log.Printf("failed to verify token. idToken: %s, error: %s", kakaoToken.IdToken, err.Error())
-		return nil, util.BadRequestError{}
+		log.Printf(err.Error())
+		return nil, appError.BadRequestError{}
 	}
 
 	// 카카오 회원 ID 와 카카오 ServiceProvider 로 Member 검색
 	// Member 가 없을 경우 ResourceNotFoundException 발생, 해당 Exception 은 오류가 아님
 	member, err := svc.memberRepository.FindBySocialIdAndProvider(payload.SocialId, "kakao")
 	if temp := new(types.ResourceNotFoundException); !errors.As(err, &temp) && err != nil {
-		id := fmt.Sprintf("%dkakao", payload.SocialId)
-		log.Printf("failed to find member\nid:%s\nerror:%s", id, err.Error())
-		return nil, util.DBReadError{}
+		log.Printf(err.Error())
+		return nil, appError.NewDBError(fmt.Errorf("정보를 가져오는데에 실패했습니다"))
 	}
 
 	// generate application token
@@ -64,10 +59,9 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 	// member 가 존재하는 경우 DB 필드를 업데이트하고 이미 회원가입된 Member return
 	if member != nil {
 		member.AccessToken = kakaoToken.AccessToken
-		_, err := svc.memberRepository.SaveMember(member)
+		err := svc.memberRepository.SaveMember(member)
 		if err != nil {
-			log.Printf("failed to save member\nmember: %+v\nerror: %s", member, err.Error())
-			return nil, util.DBSaveError{}
+			return nil, appError.NewDBError(fmt.Errorf("회원 정보를 저장하는데에 실패했습니다"))
 		}
 		result := &dto.SignInRes{
 			Member:     member,
@@ -87,10 +81,9 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 			FcmToken:    nil,
 			Email:       payload.Email,
 		}
-		_, err := svc.memberRepository.SaveMember(newMember)
+		err := svc.memberRepository.SaveMember(newMember)
 		if err != nil {
-			log.Printf("failed to save member\nnew member: %+v\nerror: %s", newMember, err.Error())
-			return nil, util.DBSaveError{}
+			return nil, appError.NewDBError(fmt.Errorf("회원 정보를 저장하는데에 실패했습니다"))
 		}
 		result := &dto.SignInRes{
 			Member:     newMember,

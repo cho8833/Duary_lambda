@@ -35,7 +35,11 @@ func Test_saveMember(t *testing.T) {
 		FcmToken: nil,
 	}
 
+<<<<<<< Updated upstream
 	err := repository.SaveMember(dummyMember)
+=======
+	_, err := repository.SaveMember(dummyMember)
+>>>>>>> Stashed changes
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

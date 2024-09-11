@@ -13,7 +13,7 @@ import (
 
 type MemberRepository interface {
 	FindBySocialIdAndProvider(socialId int64, provider string) (*model.Member, error)
-	SaveMember(member *model.Member) error
+	SaveMember(member *model.Member) (*model.Member, error)
 }
 
 type MemberRepositoryDynamoDB struct {
@@ -48,18 +48,17 @@ func (repo *MemberRepositoryDynamoDB) FindBySocialIdAndProvider(socialId int64, 
 
 	return member, nil
 }
-
-func (repo *MemberRepositoryDynamoDB) SaveMember(member *model.Member) error {
+func (repo *MemberRepositoryDynamoDB) SaveMember(member *model.Member) (*model.Member, error) {
 	item, err := attributevalue.MarshalMap(member)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	_, err = repo.client.PutItem(context.TODO(), &dynamodb.PutItemInput{
 		TableName: aws.String("Member"),
 		Item:      item,
 	})
 	if err != nil {
-		return err
+		return nil, err
 	}
-	return nil
+	return member, nil
 }

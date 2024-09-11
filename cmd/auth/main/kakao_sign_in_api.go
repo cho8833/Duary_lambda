@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/cho8833/duary_lambda/internal/auth/dto"
@@ -20,7 +19,7 @@ func kakaoSignInAPI(ctx context.Context, request events.APIGatewayProxyRequest) 
 	dynamoDBClient, err := cacheClient.GetDynamoDBClient()
 	if err != nil {
 		log.Printf(err.Error())
-		return util.LambdaErrorResponse(fmt.Errorf("알 수 없는 서버 오류"), 500), nil
+		return util.LambdaAppErrorResponse(util.InternalServerError{}), nil
 	}
 	memberRepository := repository.NewMemberRepository(dynamoDBClient)
 	svc := service.NewKakaoAuthService(&jwt_util.JWTValidatorImpl{}, &jwt_util.JWTUtilImpl{}, memberRepository)
@@ -30,7 +29,7 @@ func kakaoSignInAPI(ctx context.Context, request events.APIGatewayProxyRequest) 
 	err = json.Unmarshal([]byte(request.Body), &kakaoToken)
 	if err != nil {
 		log.Printf(err.Error())
-		return util.LambdaErrorResponse(fmt.Errorf("잘못된 요청"), 400), nil
+		return util.LambdaAppErrorResponse(util.BadRequestError{}), nil
 	}
 
 	// process
