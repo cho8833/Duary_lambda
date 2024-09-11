@@ -8,16 +8,17 @@ import (
 )
 
 func Test_NewToken(t *testing.T) {
-	os.Setenv("secretKey", "4fM090neAzdhL/RRduD0M8IEBgY7N+uR/7pJmO92wWo=")
+	key := "4fM090neAzdhL/+uR/7pJmO92wWo="
+	os.Setenv("secretKey", key)
 	jwtUtil := jwt_util.JWTUtilImpl{}
 
 	applicationJwt := jwtUtil.NewToken("1kakao", "조현빈")
-	id, err := jwtUtil.ValidateApplicationJWT(applicationJwt.AccessToken)
+	id, err := jwtUtil.ValidateApplicationJWT(applicationJwt.AccessToken, key)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 	assert.Equal(t, "1kakao", *id)
-	id, err = jwtUtil.ValidateApplicationJWT(applicationJwt.RefreshToken)
+	id, err = jwtUtil.ValidateApplicationJWT(applicationJwt.RefreshToken, key)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -25,12 +26,13 @@ func Test_NewToken(t *testing.T) {
 }
 
 func Test_ValidateApplicationJWT(t *testing.T) {
-	os.Setenv("secretKey", "4fM090neAzdhL/RRduD0M8IEBgY7N+uR/7pJmO92wWo=")
+	key := "4fM090neAzdhL/+uR/7pJmO92wWo="
+	os.Setenv("secretKey", key)
 	jwtUtil := jwt_util.JWTUtilImpl{}
 
 	applicationJwt := jwtUtil.NewToken("1kakao", "조현빈")
 
-	id, err := jwtUtil.ValidateApplicationJWT(applicationJwt.AccessToken)
+	id, err := jwtUtil.ValidateApplicationJWT(applicationJwt.AccessToken, key)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

@@ -3,8 +3,8 @@ package test
 import (
 	"fmt"
 	oidcRepository "github.com/cho8833/duary_lambda/internal/auth/repository"
-	repository "github.com/cho8833/duary_lambda/internal/auth/repository/impl"
-	oidcService "github.com/cho8833/duary_lambda/internal/auth/service/impl"
+	repository "github.com/cho8833/duary_lambda/internal/auth/repository"
+	oidcService "github.com/cho8833/duary_lambda/internal/auth/service"
 	testUtil "github.com/cho8833/duary_lambda/internal/test/util"
 	"github.com/cho8833/duary_lambda/internal/util"
 	"testing"

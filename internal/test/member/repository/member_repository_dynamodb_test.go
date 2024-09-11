@@ -3,7 +3,7 @@ package repository
 import (
 	"fmt"
 	"github.com/cho8833/duary_lambda/internal/member/model"
-	"github.com/cho8833/duary_lambda/internal/member/repository/impl"
+	"github.com/cho8833/duary_lambda/internal/member/repository"
 	"github.com/cho8833/duary_lambda/internal/test/util"
 	"testing"
 	"time"
@@ -11,7 +11,7 @@ import (
 
 func Test_FindById(t *testing.T) {
 	client := util.CreateLocalDynamoDBClient()
-	repository := impl.NewMemberRepository(client)
+	repository := repository.NewMemberRepository(client)
 
 	member, err := repository.FindBySocialIdAndProvider(1, "")
 	if err != nil {
@@ -22,7 +22,7 @@ func Test_FindById(t *testing.T) {
 
 func Test_saveMember(t *testing.T) {
 	client := util.CreateLocalDynamoDBClient()
-	repository := impl.NewMemberRepository(client)
+	repository := repository.NewMemberRepository(client)
 	name := "test"
 	now := time.Now()
 	gender := "man"
@@ -43,7 +43,7 @@ func Test_saveMember(t *testing.T) {
 
 func Test_findBySocialIdAndProvider(t *testing.T) {
 	client := util.CreateLocalDynamoDBClient()
-	repository := impl.NewMemberRepository(client)
+	repository := repository.NewMemberRepository(client)
 
 	member, err := repository.FindBySocialIdAndProvider(1, "kakao")
 	if err != nil {
