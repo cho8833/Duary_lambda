@@ -1,9 +1,8 @@
-package service
+package auth
 
 import (
 	"fmt"
 	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
-	"github.com/cho8833/duary_lambda/internal/auth/repository"
 	"log"
 )
 
@@ -12,10 +11,10 @@ type OIDCService interface {
 }
 
 type OIDCServiceImpl struct {
-	repository repository.OIDCPublicKeyRepository
+	repository OIDCPublicKeyRepository
 }
 
-func NewOIDCService(repository *repository.OIDCPublicKeyRepository) *OIDCServiceImpl {
+func NewOIDCService(repository *OIDCPublicKeyRepository) *OIDCServiceImpl {
 	return &OIDCServiceImpl{repository: *repository}
 }
 

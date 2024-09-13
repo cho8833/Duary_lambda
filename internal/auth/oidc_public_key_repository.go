@@ -1,4 +1,4 @@
-package repository
+package auth
 
 import (
 	"context"
@@ -8,15 +8,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/cho8833/duary_lambda/internal/auth/dto"
 	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
 	"log"
 	"net/http"
 )
 
 type OIDCPublicKeyRepository interface {
-	FindPublicKeyInDB(provider string) (*dto.CertResponse, error)
-	GetPublicJWK(url string) (*dto.CertResponse, error)
+	FindPublicKeyInDB(provider string) (*CertResponse, error)
+	GetPublicJWK(url string) (*CertResponse, error)
 	SaveJWK(provider string, jwks []jwtutil.JWK) error
 }
 
@@ -34,7 +33,7 @@ func NewOIDCPublicKeyRepository(httpClient *http.Client, dynamodbClient *dynamod
 	return &OIDCPublicKeyRepositoryImpl{httpClient: httpClient, dynamoDBClient: dynamodbClient}
 }
 
-func (repository *OIDCPublicKeyRepositoryImpl) FindPublicKeyInDB(provider string) (*dto.CertResponse, error) {
+func (repository *OIDCPublicKeyRepositoryImpl) FindPublicKeyInDB(provider string) (*CertResponse, error) {
 	result, err := repository.dynamoDBClient.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String("Cert"),
 		Key: map[string]types.AttributeValue{
@@ -51,10 +50,10 @@ func (repository *OIDCPublicKeyRepositoryImpl) FindPublicKeyInDB(provider string
 		return nil, err
 	}
 
-	return &dto.CertResponse{Keys: res.Keys}, nil
+	return &CertResponse{Keys: res.Keys}, nil
 }
 
-func (repository *OIDCPublicKeyRepositoryImpl) GetPublicJWK(url string) (*dto.CertResponse, error) {
+func (repository *OIDCPublicKeyRepositoryImpl) GetPublicJWK(url string) (*CertResponse, error) {
 
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
@@ -72,7 +71,7 @@ func (repository *OIDCPublicKeyRepositoryImpl) GetPublicJWK(url string) (*dto.Ce
 		return nil, fmt.Errorf(errorMsg)
 	}
 
-	certRes := &dto.CertResponse{}
+	certRes := &CertResponse{}
 	if err := json.NewDecoder(res.Body).Decode(certRes); err != nil {
 		return nil, err
 	}

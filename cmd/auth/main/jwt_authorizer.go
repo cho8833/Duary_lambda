@@ -24,6 +24,15 @@ func jwtAuthorizer(ctx context.Context, request events.APIGatewayCustomAuthorize
 		PrincipalID: *id,
 		PolicyDocument: events.APIGatewayCustomAuthorizerPolicy{
 			Version: "2012-10-17",
+			Statement: []events.IAMPolicyStatement{
+				{
+					Action: []string{"execute-api:Invoke"},
+					Effect: "Allow",
+					Resource: []string{
+						"arn:aws:apigateway:ap-northeast-2::/apis/i3lm91q9v5/*",
+					},
+				},
+			},
 		},
 	}, nil
 }

@@ -38,3 +38,10 @@ type DBReadError struct{}
 
 func (err DBReadError) Error() string   { return "정보를 가져오는데에 실패했습니다" }
 func (err DBReadError) StatusCode() int { return 500 }
+
+type DBUpdateError struct{}
+
+func (err DBUpdateError) Error() string {
+	return "정보를 업데이트하는데에 실패했습니다"
+}
+func (err DBUpdateError) StatusCode() int { return 500 }

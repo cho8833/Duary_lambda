@@ -4,9 +4,8 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/aws-lambda-go/lambda"
+	authService "github.com/cho8833/duary_lambda/internal/auth"
 	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
-	"github.com/cho8833/duary_lambda/internal/auth/repository"
-	authService "github.com/cho8833/duary_lambda/internal/auth/service"
 	"github.com/cho8833/duary_lambda/internal/util"
 )
 
@@ -28,7 +27,7 @@ func getOIDCPublicKeyAPI(ctx context.Context, request *jwtutil.GetPublicKeyReq) 
 	}
 
 	// init service
-	var repo repository.OIDCPublicKeyRepository = repository.NewOIDCPublicKeyRepository(httpClient, dynamodbClient)
+	var repo authService.OIDCPublicKeyRepository = authService.NewOIDCPublicKeyRepository(httpClient, dynamodbClient)
 	svc := authService.NewOIDCService(&repo)
 
 	res, err := svc.GetPublicKey(request.Url, request.Provider, request.Kid)

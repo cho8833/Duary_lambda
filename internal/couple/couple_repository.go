@@ -1,27 +1,26 @@
-package repository
+package couple
 
 import (
 	"context"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
-	"github.com/cho8833/duary_lambda/internal/couple/model"
 	uuid2 "github.com/google/uuid"
 )
 
-type CoupleRepository interface {
-	SaveCouple(couple *model.Couple) (*model.Couple, error)
+type Repository interface {
+	SaveCouple(couple *Couple) (*Couple, error)
 }
 
-type CoupleRepositoryDynamoDB struct {
+type RepositoryDynamoDB struct {
 	client *dynamodb.Client
 }
 
-func NewCoupleRepository(client *dynamodb.Client) *CoupleRepositoryDynamoDB {
-	return &CoupleRepositoryDynamoDB{client: client}
+func NewCoupleRepository(client *dynamodb.Client) *RepositoryDynamoDB {
+	return &RepositoryDynamoDB{client: client}
 }
 
-func (repository *CoupleRepositoryDynamoDB) SaveCouple(couple *model.Couple) (*model.Couple, error) {
+func (repository *RepositoryDynamoDB) SaveCouple(couple *Couple) (*Couple, error) {
 	couple.Id = generateUID()
 	item, err := attributevalue.MarshalMap(couple)
 	if err != nil {

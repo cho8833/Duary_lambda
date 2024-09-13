@@ -1,31 +1,33 @@
-package impl
+package auth
 
 import (
 	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
-	"github.com/cho8833/duary_lambda/internal/auth/dto"
 	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
-	"github.com/cho8833/duary_lambda/internal/member/model"
-	memberRepository "github.com/cho8833/duary_lambda/internal/member/repository"
-	appError "github.com/cho8833/duary_lambda/internal/util"
+	"github.com/cho8833/duary_lambda/internal/member"
+	"github.com/cho8833/duary_lambda/internal/util"
 	"log"
 	"os"
 )
 
+type KakaoAuthService interface {
+	SignIn(token *KakaoOAuthToken) (SignInRes, util.ApplicationError)
+}
+
 type KakaoAuthServiceImpl struct {
-	memberRepository memberRepository.MemberRepository
+	memberRepository member.Repository
 	jwtValidator     jwtutil.JWTValidator
 	jwtUtil          jwtutil.JWTUtil
 }
 
 func NewKakaoAuthService(jwtValidator jwtutil.JWTValidator,
 	jwtUtil jwtutil.JWTUtil,
-	memberRepository memberRepository.MemberRepository) *KakaoAuthServiceImpl {
+	memberRepository member.Repository) *KakaoAuthServiceImpl {
 	return &KakaoAuthServiceImpl{jwtValidator: jwtValidator, jwtUtil: jwtUtil, memberRepository: memberRepository}
 }
 
-func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.SignInRes, appError.ApplicationError) {
+func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *KakaoOAuthToken) (*SignInRes, util.ApplicationError) {
 
 	aud := os.Getenv("aud")
 	nonce := os.Getenv("nonce")
@@ -39,39 +41,41 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 	}
 	payload, err := svc.jwtValidator.VerifyRSA256(*kakaoToken.IdToken, validateValue)
 	if err != nil {
-		log.Printf(err.Error())
-		return nil, appError.BadRequestError{}
+		log.Printf("failed to verify token. idToken: %s, error: %s", kakaoToken.IdToken, err.Error())
+		return nil, util.BadRequestError{}
 	}
 
 	// 카카오 회원 ID 와 카카오 ServiceProvider 로 Member 검색
 	// Member 가 없을 경우 ResourceNotFoundException 발생, 해당 Exception 은 오류가 아님
-	member, err := svc.memberRepository.FindBySocialIdAndProvider(payload.SocialId, "kakao")
+	findMember, err := svc.memberRepository.FindBySocialIdAndProvider(payload.SocialId, "kakao")
 	if temp := new(types.ResourceNotFoundException); !errors.As(err, &temp) && err != nil {
-		log.Printf(err.Error())
-		return nil, appError.NewDBError(fmt.Errorf("정보를 가져오는데에 실패했습니다"))
+		id := fmt.Sprintf("%dkakao", payload.SocialId)
+		log.Printf("failed to find findMember\nid:%s\nerror:%s", id, err.Error())
+		return nil, util.DBReadError{}
 	}
 
 	// generate application token
-	memberId := fmt.Sprintf("%d%s", member.SocialId, member.Provider)
+	memberId := fmt.Sprintf("%d%s", findMember.SocialId, findMember.Provider)
 	key := os.Getenv("secretKey")
 	newToken := svc.jwtUtil.NewToken(memberId, key)
 
-	// member 가 존재하는 경우 DB 필드를 업데이트하고 이미 회원가입된 Member return
-	if member != nil {
-		member.AccessToken = kakaoToken.AccessToken
-		err := svc.memberRepository.SaveMember(member)
+	// findMember 가 존재하는 경우 DB 필드를 업데이트하고 이미 회원가입된 Member return
+	if findMember != nil {
+		findMember.AccessToken = kakaoToken.AccessToken
+		_, err := svc.memberRepository.SaveMember(findMember)
 		if err != nil {
-			return nil, appError.NewDBError(fmt.Errorf("회원 정보를 저장하는데에 실패했습니다"))
+			log.Printf("failed to save findMember\nfindMember: %+v\nerror: %s", findMember, err.Error())
+			return nil, util.DBSaveError{}
 		}
-		result := &dto.SignInRes{
-			Member:     member,
+		result := &SignInRes{
+			Member:     findMember,
 			IsRegister: false,
 			Token:      newToken,
 		}
 		return result, nil
 	} else {
-		// member 가 존재하지 않는 경우 Member 생성, 최초 회원가입
-		newMember := &model.Member{
+		// findMember 가 존재하지 않는 경우 Member 생성, 최초 회원가입
+		newMember := &member.Member{
 			Name:        payload.NickName,
 			Birthday:    nil,
 			AccessToken: kakaoToken.AccessToken,
@@ -81,11 +85,12 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *dto.KakaoOAuthToken) (*dto.S
 			FcmToken:    nil,
 			Email:       payload.Email,
 		}
-		err := svc.memberRepository.SaveMember(newMember)
+		_, err := svc.memberRepository.SaveMember(newMember)
 		if err != nil {
-			return nil, appError.NewDBError(fmt.Errorf("회원 정보를 저장하는데에 실패했습니다"))
+			log.Printf("failed to save findMember\nnew findMember: %+v\nerror: %s", newMember, err.Error())
+			return nil, util.DBSaveError{}
 		}
-		result := &dto.SignInRes{
+		result := &SignInRes{
 			Member:     newMember,
 			IsRegister: true,
 			Token:      newToken,

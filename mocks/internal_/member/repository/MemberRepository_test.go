@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	model "github.com/cho8833/duary_lambda/internal/member/model"
+	model "github.com/cho8833/duary_lambda/internal/member"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -88,7 +88,7 @@ func (_m *MemberRepository) SaveMember(member *model.Member) error {
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.Member) error); ok {
+	if rf, ok := ret.Get(0).(func(*member.Member) error); ok {
 		r0 = rf(member)
 	} else {
 		r0 = ret.Error(0)

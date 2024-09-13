@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/cho8833/duary_lambda/internal/auth/dto"
+	"github.com/cho8833/duary_lambda/internal/auth"
 	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
-	"github.com/cho8833/duary_lambda/internal/auth/service"
-	"github.com/cho8833/duary_lambda/internal/member/repository"
+	"github.com/cho8833/duary_lambda/internal/member"
 	"github.com/cho8833/duary_lambda/internal/util"
 	"log"
 )
@@ -21,11 +20,11 @@ func kakaoSignInAPI(ctx context.Context, request events.APIGatewayProxyRequest) 
 		log.Printf(err.Error())
 		return util.LambdaAppErrorResponse(util.InternalServerError{}), nil
 	}
-	memberRepository := repository.NewMemberRepository(dynamoDBClient)
-	svc := service.NewKakaoAuthService(&jwtutil.JWTValidatorImpl{}, &jwtutil.JWTUtilImpl{}, memberRepository)
+	memberRepository := member.NewMemberRepository(dynamoDBClient)
+	svc := auth.NewKakaoAuthService(&jwtutil.JWTValidatorImpl{}, &jwtutil.JWTUtilImpl{}, memberRepository)
 
 	// parse request
-	kakaoToken := &dto.KakaoOAuthToken{}
+	kakaoToken := &auth.KakaoOAuthToken{}
 	err = json.Unmarshal([]byte(request.Body), &kakaoToken)
 	if err != nil {
 		log.Printf(err.Error())

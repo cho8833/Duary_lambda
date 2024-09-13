@@ -2,9 +2,7 @@ package test
 
 import (
 	"fmt"
-	oidcRepository "github.com/cho8833/duary_lambda/internal/auth/repository"
-	repository "github.com/cho8833/duary_lambda/internal/auth/repository"
-	oidcService "github.com/cho8833/duary_lambda/internal/auth/service"
+	oidcService "github.com/cho8833/duary_lambda/internal/auth"
 	testUtil "github.com/cho8833/duary_lambda/internal/test/util"
 	"github.com/cho8833/duary_lambda/internal/util"
 	"testing"
@@ -18,7 +16,7 @@ func Test_updatePublicKey(t *testing.T) {
 	}
 	dynamodbClient := testUtil.CreateLocalDynamoDBClient()
 
-	var repo oidcRepository.OIDCPublicKeyRepository = repository.NewOIDCPublicKeyRepository(httpClient, dynamodbClient)
+	var repo oidcService.OIDCPublicKeyRepository = oidcService.NewOIDCPublicKeyRepository(httpClient, dynamodbClient)
 
 	svc := oidcService.NewOIDCService(&repo)
 
