@@ -2,6 +2,7 @@ package jwtutil
 
 import (
 	"fmt"
+	"github.com/cho8833/duary_lambda/internal/member"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
 	"time"
@@ -17,12 +18,13 @@ type ApplicationJWT struct {
 type JWTUtil interface {
 	NewToken(id string, key string) *ApplicationJWT
 	ValidateApplicationJWT(tokenString string, key string) (*string, error)
+	GenerateSubject(member *member.Member) string
 }
 
-type JWTUtilImpl struct {
+type Impl struct {
 }
 
-func (util *JWTUtilImpl) NewToken(id string, key string) *ApplicationJWT {
+func (util *Impl) NewToken(id string, key string) *ApplicationJWT {
 	secretKey := []byte(key)
 	// accessToken: 1일 후 expire
 	expireTime := time.Now().AddDate(0, 0, 1).Unix()
@@ -49,7 +51,7 @@ func (util *JWTUtilImpl) NewToken(id string, key string) *ApplicationJWT {
 	return result
 }
 
-func (util *JWTUtilImpl) ValidateApplicationJWT(tokenString string, key string) (*string, error) {
+func (util *Impl) ValidateApplicationJWT(tokenString string, key string) (*string, error) {
 	secretKey := []byte(key)
 
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -72,4 +74,8 @@ func (util *JWTUtilImpl) ValidateApplicationJWT(tokenString string, key string) 
 	}
 
 	return &id, nil
+}
+
+func (util *Impl) GenerateSubject(member *member.Member) string {
+	return fmt.Sprintf("%d-%s", member.SocialId, member.Provider)
 }
