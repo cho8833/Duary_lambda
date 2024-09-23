@@ -55,7 +55,7 @@ func (svc *KakaoAuthServiceImpl) SignIn(kakaoToken *KakaoOAuthToken) (*SignInRes
 	}
 
 	// generate application token
-	memberId := fmt.Sprintf("%d%s", findMember.SocialId, findMember.Provider)
+	memberId := svc.jwtUtil.GenerateSubject(findMember)
 	key := os.Getenv("secretKey")
 	newToken := svc.jwtUtil.NewToken(memberId, key)
 
