@@ -18,6 +18,7 @@ type Repository interface {
 	FindBySocialIdAndProvider(socialId int64, provider string) (*Member, error)
 	SaveMember(member *Member) (*Member, error)
 	UpdateMember(member *UpdateMemberReq) (*Member, error)
+	GetUpdateMemberTransaction(member *UpdateMemberReq) (*types.TransactWriteItem, error)
 }
 
 type RepositoryDynamoDB struct {
@@ -29,6 +30,7 @@ func NewMemberRepository(client *dynamodb.Client) *RepositoryDynamoDB {
 }
 
 func (repo *RepositoryDynamoDB) FindBySocialIdAndProvider(socialId int64, provider string) (*Member, error) {
+
 	result, err := repo.client.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
 		Key: map[string]types.AttributeValue{
@@ -68,30 +70,8 @@ func (repo *RepositoryDynamoDB) SaveMember(member *Member) (*Member, error) {
 }
 
 func (repo *RepositoryDynamoDB) UpdateMember(member *UpdateMemberReq) (*Member, error) {
-	update := expression.UpdateBuilder{}
-	if member.Name != nil {
-		update = update.Set(expression.Name("name"), expression.Value(*member.Name))
-	}
-	if member.AccessToken != nil {
-		update = update.Set(expression.Name("accessToken"), expression.Value(member.AccessToken))
-	}
-	if member.Email != nil {
-		update = update.Set(expression.Name("email"), expression.Value(member.Email))
-	}
-	if member.Gender != nil {
-		update = update.Set(expression.Name("gender"), expression.Value(member.Gender))
-	}
-	if member.Birthday != nil {
-		update = update.Set(expression.Name("birthday"), expression.Value(member.Birthday))
-	}
-	if member.FcmToken != nil {
-		update = update.Set(expression.Name("fcmToken"), expression.Value(member.FcmToken))
-	}
-
-	expr, err := expression.NewBuilder().WithUpdate(update).Build()
-
+	expr, err := repo.updateMemberExpression(member)
 	if err != nil {
-		log.Printf("failed to build update expression : %s", err.Error())
 		return nil, err
 	}
 
@@ -111,7 +91,57 @@ func (repo *RepositoryDynamoDB) UpdateMember(member *UpdateMemberReq) (*Member, 
 	result := &Member{}
 	_ = attributevalue.UnmarshalMap(response.Attributes, result)
 	return result, nil
+}
 
+func (repo *RepositoryDynamoDB) updateMemberExpression(req *UpdateMemberReq) (*expression.Expression, error) {
+	update := expression.UpdateBuilder{}
+	if req.Name != nil {
+		update = update.Set(expression.Name("name"), expression.Value(*req.Name))
+	}
+	if req.AccessToken != nil {
+		update = update.Set(expression.Name("accessToken"), expression.Value(req.AccessToken))
+	}
+	if req.Email != nil {
+		update = update.Set(expression.Name("email"), expression.Value(req.Email))
+	}
+	if req.Gender != nil {
+		update = update.Set(expression.Name("gender"), expression.Value(req.Gender))
+	}
+	if req.Birthday != nil {
+		update = update.Set(expression.Name("birthday"), expression.Value(req.Birthday))
+	}
+	if req.FcmToken != nil {
+		update = update.Set(expression.Name("fcmToken"), expression.Value(req.FcmToken))
+	}
+	if req.CoupleId != nil {
+		update = update.Set(expression.Name("coupleId"), expression.Value(req.CoupleId))
+	}
+	if req.Character != nil {
+		update = update.Set(expression.Name("character"), expression.Value(req.Character))
+	}
+
+	expr, err := expression.NewBuilder().WithUpdate(update).Build()
+
+	if err != nil {
+		log.Printf("failed to build update expression : %s", err.Error())
+		return nil, err
+	}
+	return &expr, nil
+}
+
+func (repo *RepositoryDynamoDB) GetUpdateMemberTransaction(member *UpdateMemberReq) (*types.TransactWriteItem, error) {
+	expr, err := repo.updateMemberExpression(member)
+	if err != nil {
+		return nil, err
+	}
+	result := &types.TransactWriteItem{Update: &types.Update{
+		TableName:                 aws.String(tableName),
+		Key:                       repo.getKey(member.SocialId, member.Provider),
+		ExpressionAttributeValues: expr.Values(),
+		ExpressionAttributeNames:  expr.Names(),
+		UpdateExpression:          expr.Update(),
+	}}
+	return result, err
 }
 
 func (repo *RepositoryDynamoDB) getKey(socialId int64, provider string) map[string]types.AttributeValue {

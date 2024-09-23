@@ -12,6 +12,7 @@ type Member struct {
 	SocialId    int64      `json:"socialId" dynamodbav:"socialId"`
 	Email       *string    `json:"email" dynamodbav:"email"`
 	CoupleId    *string    `json:"coupleId" dynamodbav:"coupleId"`
+	Character   *string    `json:"character" dynamodbav:"character"`
 }
 
 type UpdateMemberReq struct {
@@ -24,4 +25,5 @@ type UpdateMemberReq struct {
 	SocialId    int64      `dynamodbav:"socialId"`
 	Email       *string    `dynamodbav:"email"`
 	CoupleId    *string    `dynamodbav:"coupleId"`
+	Character   *string    `dynamodbav:"character"`
 }

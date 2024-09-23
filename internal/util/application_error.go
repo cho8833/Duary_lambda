@@ -5,6 +5,20 @@ type ApplicationError interface {
 	StatusCode() int
 }
 
+type ValidateError struct {
+	message string
+}
+
+func NewCustomApplicationError(message string) ValidateError {
+	return ValidateError{message: message}
+}
+func (err ValidateError) Error() string {
+	return err.message
+}
+func (err ValidateError) StatusCode() int {
+	return 400
+}
+
 type BadRequestError struct {
 }
 
@@ -45,3 +59,8 @@ func (err DBUpdateError) Error() string {
 	return "정보를 업데이트하는데에 실패했습니다"
 }
 func (err DBUpdateError) StatusCode() int { return 500 }
+
+type DBError struct{}
+
+func (err DBError) Error() string   { return "작업에 실패했습니다" }
+func (err DBError) StatusCode() int { return 500 }

@@ -5,11 +5,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
+	"github.com/aws/aws-sdk-go-v2/service/dynamodb/types"
 	uuid2 "github.com/google/uuid"
 )
 
+const tableName = "Couple"
+
 type Repository interface {
 	SaveCouple(couple *Couple) (*Couple, error)
+	GetSaveCoupleTransaction(couple *Couple) (*types.TransactWriteItem, error)
 }
 
 type RepositoryDynamoDB struct {
@@ -39,7 +43,21 @@ func (repository *RepositoryDynamoDB) SaveCouple(couple *Couple) (*Couple, error
 	return couple, nil
 }
 
-func generateUID() string {
-	uuid := uuid2.New()
-	return uuid.String()
+func (repository *RepositoryDynamoDB) GetSaveCoupleTransaction(couple *Couple) (*types.TransactWriteItem, error) {
+	couple.Id = generateUID()
+	item, err := attributevalue.MarshalMap(couple)
+	if err != nil {
+		return nil, err
+	}
+	transaction := &types.TransactWriteItem{Put: &types.Put{
+		TableName: aws.String(tableName),
+		Item:      item,
+	}}
+
+	return transaction, nil
+}
+
+func generateUID() *string {
+	uuid := uuid2.New().String()
+	return &uuid
 }

@@ -10,7 +10,7 @@ import (
 func Test_NewToken(t *testing.T) {
 	key := "4fM090neAzdhL/+uR/7pJmO92wWo="
 	os.Setenv("secretKey", key)
-	jwtUtil := jwtutil.JWTUtilImpl{}
+	jwtUtil := jwtutil.Impl{}
 
 	applicationJwt := jwtUtil.NewToken("1kakao", "조현빈")
 	id, err := jwtUtil.ValidateApplicationJWT(applicationJwt.AccessToken, key)
@@ -28,7 +28,7 @@ func Test_NewToken(t *testing.T) {
 func Test_ValidateApplicationJWT(t *testing.T) {
 	key := "4fM090neAzdhL/+uR/7pJmO92wWo="
 	os.Setenv("secretKey", key)
-	jwtUtil := jwtutil.JWTUtilImpl{}
+	jwtUtil := jwtutil.Impl{}
 
 	applicationJwt := jwtUtil.NewToken("1kakao", "조현빈")
 
