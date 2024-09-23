@@ -3,6 +3,8 @@ package couple
 import (
 	"github.com/cho8833/duary_lambda/internal/util"
 	"log"
+	"math/rand"
+	"time"
 )
 
 type Service interface {
@@ -23,6 +25,7 @@ func (svc *ServiceImpl) CreateCouple(req *CreateCoupleReq, transaction *util.Dyn
 		IsConnected:    &isConnected,
 		RelationDate:   &req.RelationDate,
 		OtherCharacter: &req.OtherCharacter,
+		Code:           svc.generateCoupleCode(),
 	}
 
 	if transaction != nil {
@@ -41,5 +44,15 @@ func (svc *ServiceImpl) CreateCouple(req *CreateCoupleReq, transaction *util.Dyn
 		}
 		return couple, nil
 	}
+}
 
+func (svc *ServiceImpl) generateCoupleCode() *string {
+	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"
+	seededRand := rand.New(rand.NewSource(time.Now().UnixNano())) // 현재 시간을 시드로 설정
+	b := make([]byte, 9)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	result := string(b)
+	return &result
 }
