@@ -12,6 +12,9 @@ import (
 	"log"
 )
 
+/*
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -trimpath -tags lambda.norpc -o bootstrap cmd/auth/main/kakao_sign_in_api.go && chmod 755 bootstrap && zip  build/package/kakao_sign_in_api.zip bootstrap && rm bootstrap
+*/
 func kakaoSignInAPI(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	// init
 	cacheClient := util.GetCacheClient()
@@ -21,7 +24,7 @@ func kakaoSignInAPI(ctx context.Context, request events.APIGatewayProxyRequest) 
 		return util.LambdaAppErrorResponse(util.InternalServerError{}), nil
 	}
 	memberRepository := member.NewMemberRepository(dynamoDBClient)
-	svc := auth.NewKakaoAuthService(&jwtutil.JWTValidatorImpl{}, &jwtutil.JWTUtilImpl{}, memberRepository)
+	svc := auth.NewKakaoAuthService(&jwtutil.JWTValidatorImpl{}, &jwtutil.Impl{}, memberRepository)
 
 	// parse request
 	kakaoToken := &auth.KakaoOAuthToken{}

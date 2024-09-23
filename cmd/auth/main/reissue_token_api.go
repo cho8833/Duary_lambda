@@ -18,7 +18,7 @@ type ReissueTokenRequest struct {
 
 func reissueTokenAPI(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	key := os.Getenv("secretKey")
-	jwtUtil := jwtutil.JWTUtilImpl{}
+	jwtUtil := jwtutil.Impl{}
 
 	req := &ReissueTokenRequest{}
 	err := json.Unmarshal([]byte(request.Body), req)
