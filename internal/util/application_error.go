@@ -64,3 +64,10 @@ type DBError struct{}
 
 func (err DBError) Error() string   { return "작업에 실패했습니다" }
 func (err DBError) StatusCode() int { return 500 }
+
+type DBDeleteError struct{}
+
+func (err DBDeleteError) Error() string {
+	return "정보를 삭제하는데에 실패했습니다"
+}
+func (err DBDeleteError) StatusCode() int { return 500 }

@@ -1,6 +1,8 @@
 package couple
 
 import (
+	"github.com/cho8833/duary_lambda/internal/auth"
+	"github.com/cho8833/duary_lambda/internal/connectcouple"
 	"github.com/cho8833/duary_lambda/internal/util"
 	"log"
 	"math/rand"
@@ -9,14 +11,16 @@ import (
 
 type Service interface {
 	CreateCouple(req *CreateCoupleReq, transaction *util.DynamoDBWriteTransaction) (*Couple, util.ApplicationError)
+	ConnectCouple(member *auth.LoginMember, coupleCode *string) (*Couple, util.ApplicationError)
 }
 
 type ServiceImpl struct {
-	repository Repository
+	repository        Repository
+	sessionRepository connectcouple.SessionRepository
 }
 
-func NewCoupleService(repository Repository) *ServiceImpl {
-	return &ServiceImpl{repository: repository}
+func NewCoupleService(repository Repository, sessionRepository connectcouple.SessionRepository) *ServiceImpl {
+	return &ServiceImpl{repository: repository, sessionRepository: sessionRepository}
 }
 
 func (svc *ServiceImpl) CreateCouple(req *CreateCoupleReq, transaction *util.DynamoDBWriteTransaction) (*Couple, util.ApplicationError) {
@@ -45,6 +49,10 @@ func (svc *ServiceImpl) CreateCouple(req *CreateCoupleReq, transaction *util.Dyn
 		return couple, nil
 	}
 }
+
+//func (svc *ServiceImpl) ConnectCouple(member *auth.LoginMember, coupleCode *string) (*Couple, util.ApplicationError) {
+//
+//}
 
 func (svc *ServiceImpl) generateCoupleCode() *string {
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"

@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/cho8833/duary_lambda/internal/auth"
 	"github.com/cho8833/duary_lambda/internal/auth/jwtutil"
 	"log"
 	"os"
@@ -26,14 +27,15 @@ func jwtAuthorizer(ctx context.Context, request events.APIGatewayProxyRequest) (
 		log.Printf("Authorization: fail to authorize. token: %s, error: %s", token, err.Error())
 		return denyResponse(), nil
 	}
-	s := strings.Split(*id, "-")
+
+	loginMember := auth.FromMemberId(id)
 
 	log.Printf("authorized %s", *id)
 	return events.APIGatewayV2CustomAuthorizerIAMPolicyResponse{
 		PrincipalID: *id,
 		Context: map[string]interface{}{
-			"socialId": s[0],
-			"provider": s[1],
+			"socialId": loginMember.SocialId,
+			"provider": loginMember.Provider,
 		},
 		PolicyDocument: events.APIGatewayCustomAuthorizerPolicy{
 			Version: "2012-10-17",
