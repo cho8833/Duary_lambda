@@ -174,7 +174,7 @@ func getPublicKey(kid string, url string, provider string) (*JWK, error) {
 	if err != nil {
 		return nil, err
 	}
-	if jwkResponse.StatusCode != 200 {
+	if jwkResponse.Status != 200 {
 		return nil, fmt.Errorf(*jwkResponse.Message)
 	}
 
