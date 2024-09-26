@@ -30,7 +30,7 @@ func startDuaryAPI(_ context.Context, req events.APIGatewayProxyRequest) (events
 	coupleSvc := couple.NewCoupleService(coupleRepo)
 	memberSvc := member.NewMemberService(memberRepo)
 
-	commonSvc := common.NewCommonService(memberSvc, coupleSvc)
+	commonSvc := common.NewCommonService(memberSvc, coupleSvc, nil)
 
 	initDuaryReq := &common.InitDuaryInfoReq{}
 	err = json.Unmarshal([]byte(req.Body), &initDuaryReq)

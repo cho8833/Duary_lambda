@@ -28,3 +28,7 @@ type InitDuaryInfoRes struct {
 	Member *member.Member `json:"member"`
 	Couple *couple.Couple `json:"couple"`
 }
+
+type ConnectCoupleReq struct {
+	CoupleCode *string `json:"coupleCode"`
+}

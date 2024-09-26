@@ -71,3 +71,8 @@ func (err DBDeleteError) Error() string {
 	return "정보를 삭제하는데에 실패했습니다"
 }
 func (err DBDeleteError) StatusCode() int { return 500 }
+
+type CoupleNotFound struct{}
+
+func (err CoupleNotFound) Error() string   { return "커플 정보가 없습니다" }
+func (err CoupleNotFound) StatusCode() int { return 400 }

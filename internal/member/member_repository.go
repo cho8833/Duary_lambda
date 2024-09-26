@@ -33,10 +33,7 @@ func (repo *RepositoryDynamoDB) FindBySocialIdAndProvider(socialId int64, provid
 
 	result, err := repo.client.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String(tableName),
-		Key: map[string]types.AttributeValue{
-			"socialId": &types.AttributeValueMemberN{Value: strconv.FormatInt(socialId, 10)},
-			"provider": &types.AttributeValueMemberS{Value: provider},
-		},
+		Key:       repo.getKey(socialId, provider),
 	})
 	if err != nil {
 		return nil, err

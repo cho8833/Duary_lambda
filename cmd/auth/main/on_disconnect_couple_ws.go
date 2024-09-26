@@ -21,7 +21,7 @@ func onDisconnectCoupleWS(_ context.Context, req *events.APIGatewayWebsocketProx
 		return util.LambdaAppErrorResponse(util.InternalServerError{}), err
 	}
 	repository := connectcouple.NewConnectCoupleRepository(dynamodbClient)
-	handler := connectcouple.NewWebsocketHandler(repository)
+	handler := connectcouple.NewConnectCoupleService(repository)
 	log.Printf("delete session connectionId :%s", req.RequestContext.ConnectionID)
 	svcError := handler.DeleteSession(&req.RequestContext.ConnectionID)
 

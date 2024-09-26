@@ -1,8 +1,6 @@
 package couple
 
 import (
-	"github.com/cho8833/duary_lambda/internal/auth"
-	"github.com/cho8833/duary_lambda/internal/connectcouple"
 	"github.com/cho8833/duary_lambda/internal/util"
 	"log"
 	"math/rand"
@@ -11,16 +9,16 @@ import (
 
 type Service interface {
 	CreateCouple(req *CreateCoupleReq, transaction *util.DynamoDBWriteTransaction) (*Couple, util.ApplicationError)
-	ConnectCouple(member *auth.LoginMember, coupleCode *string) (*Couple, util.ApplicationError)
+	UpdateCouple(couple *Couple, transaction *util.DynamoDBWriteTransaction) (*Couple, util.ApplicationError)
+	FindByCoupleCode(coupleCode *string) (*Couple, util.ApplicationError)
 }
 
 type ServiceImpl struct {
-	repository        Repository
-	sessionRepository connectcouple.SessionRepository
+	repository Repository
 }
 
-func NewCoupleService(repository Repository, sessionRepository connectcouple.SessionRepository) *ServiceImpl {
-	return &ServiceImpl{repository: repository, sessionRepository: sessionRepository}
+func NewCoupleService(repository Repository) *ServiceImpl {
+	return &ServiceImpl{repository: repository}
 }
 
 func (svc *ServiceImpl) CreateCouple(req *CreateCoupleReq, transaction *util.DynamoDBWriteTransaction) (*Couple, util.ApplicationError) {
@@ -50,9 +48,35 @@ func (svc *ServiceImpl) CreateCouple(req *CreateCoupleReq, transaction *util.Dyn
 	}
 }
 
-//func (svc *ServiceImpl) ConnectCouple(member *auth.LoginMember, coupleCode *string) (*Couple, util.ApplicationError) {
-//
-//}
+func (svc *ServiceImpl) UpdateCouple(couple *Couple, transaction *util.DynamoDBWriteTransaction) (*Couple, util.ApplicationError) {
+	if transaction != nil {
+		writeTransaction, err := svc.repository.GetSaveCoupleTransaction(couple)
+		if err != nil {
+			return nil, util.DBUpdateError{}
+		}
+		transaction.AddTransaction(writeTransaction)
+		return couple, nil
+	} else {
+		updatedCouple, err := svc.repository.SaveCouple(couple)
+		if err != nil {
+			return nil, util.DBUpdateError{}
+		}
+		return updatedCouple, nil
+	}
+
+}
+
+func (svc *ServiceImpl) FindByCoupleCode(coupleCode *string) (*Couple, util.ApplicationError) {
+	couples, err := svc.repository.FindByCoupleCode(coupleCode)
+	if err != nil {
+		return nil, util.CoupleNotFound{}
+	}
+	if len(couples) != 1 {
+		log.Printf("Couple with coupleCode: %s invalid. Found %d", *coupleCode, len(couples))
+		return nil, util.InternalServerError{}
+	}
+	return &couples[0], nil
+}
 
 func (svc *ServiceImpl) generateCoupleCode() *string {
 	const charset = "abcdefghijklmnopqrstuvwxyz0123456789"

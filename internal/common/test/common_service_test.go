@@ -20,7 +20,7 @@ func Test_InitDuary_Local(t *testing.T) {
 	coupleSvc := couple.NewCoupleService(coupleRepo)
 	memberSvc := member.NewMemberService(memberRepo)
 
-	commonSvc := common.NewCommonService(memberSvc, coupleSvc)
+	commonSvc := common.NewCommonService(memberSvc, coupleSvc, nil)
 
 	name := "test"
 	otherCharacter := "blue"

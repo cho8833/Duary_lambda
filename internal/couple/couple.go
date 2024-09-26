@@ -7,5 +7,5 @@ type Couple struct {
 	IsConnected    *bool      `json:"isConnected" dynamodbav:"isConnected"`
 	RelationDate   *time.Time `json:"relationDate" dynamodbav:"relationDate"`
 	OtherCharacter *string    `json:"otherCharacter" dynamodbav:"otherCharacter"`
-	Code           *string    `json:"code" dynamodb:"code"`
+	Code           *string    `json:"code" dynamodbav:"code"`
 }

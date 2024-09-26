@@ -20,7 +20,7 @@ func onConnectCoupleWS(_ context.Context, req *events.APIGatewayWebsocketProxyRe
 	}
 
 	repository := connectcouple.NewConnectCoupleRepository(dynamodbClient)
-	handler := connectcouple.NewWebsocketHandler(repository)
+	handler := connectcouple.NewConnectCoupleService(repository)
 
 	coupleCode := req.QueryStringParameters["coupleCode"]
 	memberId := req.QueryStringParameters["memberId"]

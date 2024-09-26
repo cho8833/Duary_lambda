@@ -44,16 +44,17 @@ func (repository *SessionRepositoryDynamoDB) SaveSession(session *Session) (*Ses
 }
 
 func (repository *SessionRepositoryDynamoDB) FindByCoupleCode(coupleCode *string) ([]Session, error) {
-	keyEx := expression.Key("coupleCode").Equal(expression.Value(coupleCode))
+	keyEx := expression.Key("coupleCode").Equal(expression.Value(*coupleCode))
+
 	expr, err := expression.NewBuilder().WithKeyCondition(keyEx).Build()
 	if err != nil {
 		return nil, err
 	}
-	result, err := repository.client.Query(context.TODO(), &dynamodb.QueryInput{
+	result, err := repository.client.Scan(context.TODO(), &dynamodb.ScanInput{
 		TableName:                 aws.String(tableName),
 		ExpressionAttributeNames:  expr.Names(),
 		ExpressionAttributeValues: expr.Values(),
-		KeyConditionExpression:    expr.KeyCondition(),
+		FilterExpression:          expr.Filter(),
 	})
 	if err != nil {
 		return nil, err
@@ -114,7 +115,6 @@ func (repository *SessionRepositoryDynamoDB) DeleteByConnectionId(connectionId *
 
 func (repository *SessionRepositoryDynamoDB) getKey(session *Session) map[string]types.AttributeValue {
 	return map[string]types.AttributeValue{
-		"coupleCode":   &types.AttributeValueMemberS{Value: *session.CoupleCode},
 		"connectionId": &types.AttributeValueMemberS{Value: *session.ConnectionId},
 	}
 }
