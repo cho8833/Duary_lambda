@@ -59,7 +59,7 @@ func (svc *ServiceImpl) DeleteSession(requestId *string) util.ApplicationError {
 }
 
 func (svc *ServiceImpl) NotifyCoupleConnected(session *Session, connectedMember *member.Member) util.ApplicationError {
-	url := "https://2t0inm29d4.execute-api.ap-northeast-2.amazonaws.com/dev/@connections"
+	url := "https://2t0inm29d4.execute-api.ap-northeast-2.amazonaws.com/dev"
 	err := svc.apiGatewayRepository.PostToConnect(url, session.ConnectionId, connectedMember)
 	if err != nil {
 		log.Printf("failed to post to connect. session: %+v\nerror: %s", session, err.Error())

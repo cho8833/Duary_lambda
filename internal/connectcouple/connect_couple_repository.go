@@ -44,9 +44,9 @@ func (repository *SessionRepositoryDynamoDB) SaveSession(session *Session) (*Ses
 }
 
 func (repository *SessionRepositoryDynamoDB) FindByCoupleCode(coupleCode *string) ([]Session, error) {
-	keyEx := expression.Key("coupleCode").Equal(expression.Value(*coupleCode))
+	filterEx := expression.Name("coupleCode").Equal(expression.Value(*coupleCode))
 
-	expr, err := expression.NewBuilder().WithKeyCondition(keyEx).Build()
+	expr, err := expression.NewBuilder().WithFilter(filterEx).Build()
 	if err != nil {
 		return nil, err
 	}
@@ -57,6 +57,7 @@ func (repository *SessionRepositoryDynamoDB) FindByCoupleCode(coupleCode *string
 		FilterExpression:          expr.Filter(),
 	})
 	if err != nil {
+		log.Printf(err.Error())
 		return nil, err
 	}
 

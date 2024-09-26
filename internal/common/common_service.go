@@ -78,6 +78,8 @@ func (svc *ServiceImpl) ConnectCouple(loginMember *auth.LoginMember, req *Connec
 
 	transaction.BeginTransaction()
 	// Update Couple
+	connected := true
+	findCouple.IsConnected = &connected
 	_, svcError = svc.coupleSvc.UpdateCouple(findCouple, transaction)
 	if svcError != nil {
 		return nil, svcError

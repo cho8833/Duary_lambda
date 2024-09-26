@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/apigatewaymanagementapi"
+	"log"
 )
 
 type ApiGatewayRepository interface {
@@ -33,6 +34,7 @@ func (repository *ApiGatewayRepositoryImpl) PostToConnect(url string, connection
 		Data:         payload,
 	})
 	if err != nil {
+		log.Printf(err.Error())
 		return err
 	}
 	return nil
